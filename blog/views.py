@@ -1001,10 +1001,22 @@ logger = logging.getLogger(__name__)
 
 def generer_recommandations_ia(stats, benefice, reg_simple, reg_multiple, classification, clusters):
     """Génère des recommandations personnalisées via Google Gemini"""
-    
+
+    api_key = getattr(settings, 'GEMINI_API_KEY', '')
+    if not api_key:
+        logger.warning("GEMINI_API_KEY non configurée — recommandations IA désactivées.")
+        return [
+            {
+                "titre": "Clé API Gemini manquante",
+                "message": "Configurez la variable d'environnement GEMINI_API_KEY pour activer les recommandations IA.",
+                "action": "Ajoutez GEMINI_API_KEY dans les variables d'environnement Railway.",
+                "priorite": "haute"
+            }
+        ]
+
     try:
         # Initialisation du client avec la nouvelle API
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        client = genai.Client(api_key=api_key)
 
         # Construction du prompt avec tes vraies données
         prompt = f"""
