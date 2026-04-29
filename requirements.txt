@@ -1,8 +1,18 @@
+
+# Packages scientifiques (pour tes analyses)
+# Serveur pour Railway
 Django==6.0.1
+Pillow==12.2.0
 asgiref==3.11.0
 djangorestframework==3.17.0
-Pillow==12.2.0
-psycopg2-binary==2.9.11
-sqlparse==0.5.5
-python-dotenv==1.2.2
+gunicorn
+numpy
 openpyxl==3.1.5
+pandas
+plotly
+psycopg2-binary==2.9.11
+python-dotenv==1.2.2
+reportlab
+scikit-learn
+scipy
+sqlparse==0.5.5
