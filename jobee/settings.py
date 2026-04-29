@@ -29,9 +29,9 @@ GEMINI_API_KEY = "AIzaSyArhy9yWBkiNAjeMSz86kTuF7kpmMReyjw"
 SECRET_KEY = 'django-insecure-o*y^l*(myaf&+ol8kq*lh%y*tbw+y+o#w7i--4dz9mm=r-@nz_'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -125,7 +125,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR /'static']
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / '/media'
 
