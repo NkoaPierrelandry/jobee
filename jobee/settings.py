@@ -77,6 +77,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Google Gemini API key — set via GEMINI_API_KEY environment variable in Railway
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
 # Configuration des logs
 LOGGING = {
     'version': 1,
