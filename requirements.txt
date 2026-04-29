@@ -5,6 +5,7 @@ Django==6.0.1
 Pillow==12.2.0
 asgiref==3.11.0
 djangorestframework==3.17.0
+google-generativeai==0.8.5
 gunicorn
 numpy
 openpyxl==3.1.5
@@ -16,7 +17,4 @@ reportlab
 scikit-learn
 scipy
 sqlparse==0.5.5
-# Force rebuild
-# Force rebuild
-# Force rebuild
 whitenoise
