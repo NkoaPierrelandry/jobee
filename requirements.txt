@@ -16,3 +16,4 @@ reportlab
 scikit-learn
 scipy
 sqlparse==0.5.5
+# Force rebuild
