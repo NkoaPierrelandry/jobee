@@ -1,0 +1,496 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liste des Producteurs</title>
+<link rel="stylesheet" href="{% static 'output.css' %}">
+<style>
+/* Styles pour les popups personnalisés */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: linear-gradient(135deg, rgba(20, 20, 30, 0.95), rgba(10, 10, 15, 0.98));
+    backdrop-filter: blur(20px);
+    margin: 5% auto;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 550px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s ease;
+}
+
+.modal-header {
+    padding: 25px 30px 15px 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.modal-footer {
+    padding: 20px 30px 30px 30px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-btn-primary {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+}
+
+.modal-btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px -5px rgba(34,197,94,0.3);
+}
+
+.modal-btn-secondary {
+    background: rgba(100,100,120,0.3);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.modal-btn-secondary:hover {
+    background: rgba(100,100,120,0.5);
+}
+
+.modal-btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.modal-btn-danger:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px -5px rgba(239,68,68,0.3);
+}
+
+.info-row {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    border-left: 3px solid #22c55e;
+}
+
+.info-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a3e635;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.info-value {
+    font-size: 18px;
+    color: white;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 13px;
+    color: #a3e635;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #22c55e;
+    background: rgba(255,255,255,0.12);
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+}
+
+.warning-icon {
+    font-size: 48px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.warning-text {
+    text-align: center;
+    font-size: 18px;
+    color: #fef08a;
+    margin-bottom: 15px;
+}
+
+.warning-message {
+    text-align: center;
+    color: #d1d5db;
+    line-height: 1.6;
+}
+
+.owner-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 8px;
+    color: white;
+}
+
+/* Formulaire caché */
+.hidden-form {
+    display: none;
+}
+</style>
+</head>
+
+<body class="min-h-screen overflow-auto">
+
+<!-- VIDEO BACKGROUND -->
+<video autoplay muted loop playsinline
+class="fixed top-0 left-0 w-full h-full object-cover -z-10">
+<source src="{% static 'videos/agriculture.mp4' %}" type="video/mp4">
+</video>
+
+<!-- MODAL POUR VOIR -->
+<div id="voirModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="color: white;">
+                <span style="font-size: 32px;">👁️</span>
+                <span>Détails du Producteur</span>
+            </h2>
+        </div>
+        <div class="modal-body">
+            <div class="info-row">
+                <div class="info-label">🆔 ID</div>
+                <div class="info-value" id="voirId"></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">👤 Nom complet</div>
+                <div class="info-value" id="voirNom"></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">📍 Région</div>
+                <div class="info-value" id="voirRegion"></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">📞 Contact</div>
+                <div class="info-value" id="voirContact"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-secondary" onclick="fermerModal('voirModal')">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL POUR MODIFIER -->
+<div id="modifierModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="color: white;">
+                <span style="font-size: 32px;">✏️</span>
+                <span>Modifier mes informations</span>
+            </h2>
+        </div>
+        <form method="POST" action="" id="formModification">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>👤 Nom complet</label>
+                    <input type="text" name="nom" id="modifierNom" placeholder="Entrez le nom complet" required>
+                </div>
+                <div class="input-group">
+                    <label>📍 Région</label>
+                    <input type="text" name="region" id="modifierRegion" placeholder="Entrez la région" required>
+                </div>
+                <div class="input-group">
+                    <label>📞 Contact</label>
+                    <input type="text" name="contact" id="modifierContact" placeholder="Entrez le contact" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="fermerModal('modifierModal')">Annuler</button>
+                <button type="submit" class="modal-btn modal-btn-primary">Appliquer les modifications</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL POUR SUPPRIMER -->
+<div id="supprimerModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="color: white;">
+                <span style="font-size: 32px;">⚠️</span>
+                <span>Confirmation de suppression</span>
+            </h2>
+        </div>
+        <form method="POST" action="" id="formSuppression">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="warning-icon">🗑️</div>
+                <div class="warning-text">Action irréversible !</div>
+                <div class="warning-message">
+                    Êtes-vous sûr de vouloir supprimer <strong id="supprimerNom" style="color: #fef08a;"></strong> ?
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="fermerModal('supprimerModal')">Annuler</button>
+                <button type="submit" class="modal-btn modal-btn-danger">Appliquer la suppression</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL POUR ACCÈS NON AUTORISÉ -->
+<div id="erreurModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="color: white;">
+                <span style="font-size: 32px;">⛔</span>
+                <span>Accès non autorisé</span>
+            </h2>
+        </div>
+        <div class="modal-body">
+            <div class="warning-icon">🔒</div>
+            <div class="warning-text">Permission refusée !</div>
+            <div class="warning-message" id="erreurMessage">
+                Vous ne pouvez pas modifier ou supprimer les informations d'un autre utilisateur.
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-secondary" onclick="fermerModal('erreurModal')">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<!-- HEADER -->
+<header class="fixed top-0 left-0 w-full z-50">
+    <div class="mx-2 sm:mx-4 mt-3 rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-7 h-7 sm:w-9 sm:h-9 bg-gradient-to-br from-green-400 to-green-700 rounded-xl flex items-center justify-center text-base shadow-lg shadow-green-900/40"></div>
+                <div class="flex flex-col leading-none">
+                    <span class="font-bold text-white text-sm sm:text-base tracking-tight">AgriCam</span>
+                    <span class="text-green-400 text-[8px] sm:text-[10px] font-medium tracking-widest uppercase">Platform</span>
+                </div>
+            </div>
+            <nav class="hidden md:flex items-center gap-1 bg-white/5 rounded-xl px-2 py-1 border border-white/10">
+                <a href="{% url 'home' %}" class="text-white/70 text-xs font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 no-underline">Accueil</a>
+                <a href="{% url 'ajouter_recolte' %}" class="text-white/70 text-xs font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 no-underline">Collecte</a>
+                <a href="{% url 'liste_producteurs' %}" class="text-white/70 text-xs font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 no-underline">Producteurs</a>
+                <a href="{% url 'analyses' %}" class="text-white/70 text-xs font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 no-underline">Analyses</a>
+            </nav>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="hidden md:flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-[11px] font-medium">En ligne</span>
+                </div>
+                <a href="{% url 'ajouter_recolte' %}" class="no-underline">
+                    <button class="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white text-xs font-bold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg shadow-green-900/40">
+                        <span>+</span>
+                        <span class="hidden sm:inline">Collecter</span>
+                        <span class="sm:hidden">Coll.</span>
+                    </button>
+                </a>
+            </div>
+            <a href="{% url 'home' %}" class="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-xl text-white font-semibold">Retour</a>
+        </div>
+    </div>
+</header>
+
+<div class="h-32"></div>
+
+<section class="relative z-10 px-8 pb-16">
+    <div class="max-w-6xl mx-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-10">
+        <div class="text-center mb-10">
+            <h2 class="text-4xl font-bold text-white mb-4">Mes Producteurs</h2>
+            <p class="text-gray-200">Gérez uniquement vos propres producteurs</p>
+        </div>
+
+        <div class="flex justify-end mb-8">
+            <a href="{% url 'ajouter_producteur' %}" class="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-xl text-white font-semibold">+ Nouveau producteur</a>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-white/20">
+            <table class="w-full text-left">
+                <thead class="bg-white/10 text-green-300">
+                    <tr>
+                        <th class="p-5">ID</th>
+                        <th class="p-5">Nom</th>
+                        <th class="p-5">Région</th>
+                        <th class="p-5">Contact</th>
+                        <th class="p-5 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in producteurs %}
+                        {% if p.user_id == request.user.id %}
+                        <tr class="border-t border-white/10 hover:bg-white/10 transition">
+                            <td class="p-5 text-white">{{ p.id }}</td>
+                            <td class="p-5 text-white font-medium">{{ p.nom }} <span class="owner-badge">Moi</span></td>
+                            <td class="p-5 text-gray-200">{{ p.region }}</td>
+                            <td class="p-5 text-gray-200">{{ p.contact }}</td>
+                            <td class="p-5">
+                                <div class="flex justify-center gap-3">
+                                    <button onclick="ouvrirVoir({{ p.id }}, '{{ p.nom|escapejs }}', '{{ p.region|escapejs }}', '{{ p.contact|escapejs }}')" class="px-4 py-2 bg-blue-500 rounded-lg text-white hover:scale-105 transition cursor-pointer">Voir</button>
+                                    <button onclick="ouvrirModifier({{ p.id }})" class="px-4 py-2 bg-yellow-500 rounded-lg text-white hover:scale-105 transition cursor-pointer">Modifier</button>
+                                    <button onclick="ouvrirSupprimer({{ p.id }}, '{{ p.nom|escapejs }}')" class="px-4 py-2 bg-red-500 rounded-lg text-white hover:scale-105 transition cursor-pointer">Supprimer</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center p-10 text-gray-300">Aucun producteur enregistré pour votre compte.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 mt-10">
+            <div class="bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+                <h3 class="text-4xl font-bold text-green-400">{{ producteurs|length }}</h3>
+                <p class="text-gray-200 mt-2">Total producteurs</p>
+            </div>
+            <div class="bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+                <h3 class="text-4xl font-bold text-yellow-400">10</h3>
+                <p class="text-gray-200 mt-2">Régions couvertes</p>
+            </div>
+            <div class="bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+                <h3 class="text-4xl font-bold text-blue-400">100%</h3>
+                <p class="text-gray-200 mt-2">Suivi digitalisé</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="bg-white/10 backdrop-blur-md border-t border-white/20 py-8 text-center text-gray-300">
+    INF232 EC2 • Plateforme de Collecte Agricole
+</footer>
+
+<script>
+let currentProducteurId = null;
+
+function ouvrirVoir(id, nom, region, contact) {
+    document.getElementById('voirId').innerHTML = id;
+    document.getElementById('voirNom').innerHTML = nom;
+    document.getElementById('voirRegion').innerHTML = region;
+    document.getElementById('voirContact').innerHTML = contact;
+    document.getElementById('voirModal').style.display = 'block';
+}
+
+function ouvrirModifier(id) {
+    currentProducteurId = id;
+    // Récupérer les données actuelles via une requête fetch
+    fetch(`/get_producteur/${id}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('modifierNom').value = data.nom;
+                document.getElementById('modifierRegion').value = data.region;
+                document.getElementById('modifierContact').value = data.contact;
+                // Mettre à jour l'action du formulaire
+                document.getElementById('formModification').action = `/modifier_producteur/${id}/`;
+                document.getElementById('modifierModal').style.display = 'block';
+            } else {
+                alert('Erreur lors du chargement des données');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors du chargement des données');
+        });
+}
+
+function ouvrirSupprimer(id, nom) {
+    currentProducteurId = id;
+    document.getElementById('supprimerNom').innerHTML = nom;
+    document.getElementById('formSuppression').action = `/supprimer_producteur/${id}/`;
+    document.getElementById('supprimerModal').style.display = 'block';
+}
+
+function fermerModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+</script>
+
+</body>
+</html>

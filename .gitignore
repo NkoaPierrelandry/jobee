@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+venv/
+env/
+.venv/
+
+# Django
+db.sqlite3
+*.log
+/staticfiles/
+/media/
+
+# Tailwind CSS (généré, à NE PAS committer)
+static/output.css
+tailwind/node_modules/
+tailwind/package-lock.json
+node_modules/
+package-lock.json
+
+# Médias lourds
+static/videos/
+static/*.mp4
+static/*.avi
+static/*.mov
+static/Pasted*.png
+static/*.jpg
+static/*.jpeg
+static/uploads/
+
+# Logo (optionnel, à décider)
+# static/logo.png  # Décommentez si vous voulez l'exclure
+
+# IDE
+.vscode/
+.idea/
+.DS_Store

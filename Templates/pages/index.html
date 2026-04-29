@@ -1,0 +1,614 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analyse des données</title>
+<link rel="stylesheet" href="{% static 'output.css' %}">
+        box-shadow: 0 8px 25px rgba(111,66,193,0.5);
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="min-h-screen relative text-white bg-black overflow-x-hidden">
+
+<!-- FOND VIDEO -->
+<video autoplay muted loop playsinline
+class="fixed inset-0 w-full h-full object-cover z-0 opacity-60">
+<source src="{% static 'videos/agriculture.mp4' %}" type="video/mp4">
+</video>
+<div class="fixed inset-0 bg-black/50 z-10 pointer-events-none"></div>
+
+<!-- ================= HEADER ================= -->
+<header class="fixed top-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-white/10">
+<div class="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center"></div>
+<h1 class="text-white text-xl font-bold">AgriCam Analytics</h1>
+</div>
+<a href="{% url 'home' %}"
+class="bg-green-600 hover:bg-green-500 px-6 py-2 rounded-xl text-white font-semibold transition btn-action">
+Retour
+</a>
+</div>
+</header>
+
+<!-- Alertes section - TOUTES LES ICONES SUPPRIMEES -->
+{% if alertes %}
+<section class="relative z-20 pt-24 px-4 md:px-6">
+    <div class="max-w-7xl mx-auto">
+        {% for alerte in alertes %}
+        <div class="alert-card mb-3 p-4 rounded-xl {% if alerte.type_alerte == 'danger' %}bg-red-900/50 border-red-500{% elif alerte.type_alerte == 'warning' %}bg-yellow-900/50 border-yellow-500{% elif alerte.type_alerte == 'success' %}bg-green-900/50 border-green-500{% else %}bg-blue-900/50 border-blue-500{% endif %} border-l-4">
+            <div class="flex items-start gap-3">
+                <div class="flex-1">
+                    <h4 class="font-bold text-white">{{ alerte.titre }}</h4>
+                    <p class="text-gray-200 text-sm">{{ alerte.message }}</p>
+                    <p class="text-gray-400 text-xs mt-1">{{ alerte.date_creation|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- ================= CONTENT ================= -->
+<main class="relative z-20 pt-28 px-4 md:px-6 pb-20">
+
+<!-- TITLE -->
+<section class="text-center mb-16">
+<h2 class="text-4xl font-bold text-white">Analyse des Données Agricoles</h2>
+<p class="text-gray-200 mt-2">Tableau de bord intelligent des performances</p>
+</section>
+
+<div class="max-w-7xl mx-auto">
+
+<!-- Section Export avec nouveaux boutons stylisés -->
+<section class="mb-8">
+    <div class="flex justify-center gap-4 flex-wrap">
+        <a href="{% url 'export_excel' %}" 
+           class="btn-modern btn-excel">
+            Exporter en Excel
+        </a>
+        <a href="{% url 'export_pdf' %}" 
+           class="btn-modern btn-pdf">
+            Exporter en PDF
+        </a>
+        <a href="{% url 'generer_alertes' %}" 
+           class="btn-modern btn-alerts">
+            Générer les alertes
+        </a>
+        <button onclick="window.print()" 
+                class="btn-modern btn-print">
+            Imprimer
+        </button>
+    </div>
+</section>
+
+    <!-- ================= TABLEAU DE BORD ================= -->
+    <section class="mb-16">
+        <h3 class="text-2xl font-bold text-white mb-10 text-center">Tableau de Bord</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- CARD 1 — Superficie -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-superficie">
+                <div class="slides" id="slides-superficie">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-gray-200 text-lg font-medium">Superficie totale</p>
+                    <h3 class="text-5xl font-bold text-green-400 mt-4">{{ total_superficie }} ha</h3>
+                    <p class="text-gray-300 text-sm mt-3">Surface agricole totale exploitée</p>
+                </div>
+                <div class="slide-dots" id="dots-superficie">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 2 — Revenus -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-revenus">
+                <div class="slides" id="slides-revenus">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-gray-200 text-lg font-medium">Revenus totaux</p>
+                    <h3 class="text-4xl font-bold text-blue-400 mt-4">{{ total_revenu }} FCFA</h3>
+                    <p class="text-gray-300 text-sm mt-3">Chiffre d'affaires de toutes les récoltes</p>
+                </div>
+                <div class="slide-dots" id="dots-revenus">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 3 — Coût -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-cout">
+                <div class="slides" id="slides-cout">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-gray-200 text-lg font-medium">Coût total</p>
+                    <h3 class="text-4xl font-bold text-red-400 mt-4">{{ cout_total }} FCFA</h3>
+                    <p class="text-gray-300 text-sm mt-3">Dépenses de production agricole</p>
+                </div>
+                <div class="slide-dots" id="dots-cout">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 4 — Bénéfice -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-benefice">
+                <div class="slides" id="slides-benefice">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1543362906-acfc16c67564?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-gray-200 text-lg font-medium">Bénéfice net</p>
+                    <h3 class="text-4xl font-bold text-yellow-400 mt-4">{{ benefice }} FCFA</h3>
+                    <p class="text-gray-300 text-sm mt-3">Profit après déduction des coûts</p>
+                </div>
+                <div class="slide-dots" id="dots-benefice">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 5 — Régression simple -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-regsimple">
+                <div class="slides" id="slides-regsimple">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1666875753105-c63a6f3bdc86?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-green-300 font-bold text-lg">Régression simple</p>
+                    {% if reg_simple %}
+                        <p class="text-xl mt-4">Coef: <span class="text-green-400 font-bold">{{ reg_simple.coef }}</span></p>
+                        <p class="text-xl mt-2">Score R²: <span class="text-green-400 font-bold">{{ reg_simple.score }}</span></p>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-regsimple">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 6 — Régression multiple -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-regmultiple">
+                <div class="slides" id="slides-regmultiple">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1526628953301-3cd7e93a1429?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-blue-300 font-bold text-lg">Régression multiple</p>
+                    {% if reg_multiple %}
+                        <p class="text-xl mt-4">Score R²: <span class="text-blue-400 font-bold">{{ reg_multiple.score }}</span></p>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-regmultiple">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 7 — Classification -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-classif">
+                <div class="slides" id="slides-classif">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1677442136019-21780ecad979?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-yellow-300 font-bold text-lg">Classification</p>
+                    {% if classification %}
+                        <p class="text-xl mt-4">Accuracy: <span class="text-yellow-400 font-bold">{{ classification.accuracy }}</span></p>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-classif">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 8 — Clustering -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-cluster">
+                <div class="slides" id="slides-cluster">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1560493676-04071c5f467b?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1569025743873-ea3a9ade89f9?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-purple-300 font-bold text-lg">Clustering K-Means</p>
+                    {% if clusters %}
+                        <div class="text-lg mt-4 space-y-2">
+                        {% for key, value in clusters.items %}
+                            <p>Cluster {{ key }} : <span class="text-purple-400 font-bold">{{ value }}</span></p>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-cluster">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 9 — PCA -->
+            <div class="slideshow-card hover:scale-105 transition md:col-span-2" id="card-pca">
+                <div class="slides" id="slides-pca">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1502101872923-d48509bff386?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-pink-300 font-bold text-lg">PCA — Réduction de dimensionnalité</p>
+                    {% if pca %}
+                        <div class="text-lg mt-4 space-y-2">
+                            <p class="font-semibold text-gray-300">Variance expliquée :</p>
+                            {% for v in pca.variance_expliquee %}
+                                <p class="text-pink-400 font-bold">Composante {{ forloop.counter }} : {{ v }}</p>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-pca">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= RECOMMANDATIONS PERSONNALISEES AVEC ANIMATION 3D ================= -->
+    {% if recommendations %}
+    <section class="mb-16">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Recommandations Personnalisées</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for rec in recommendations %}
+            <div class="rec-card-3d p-6 hover:scale-105 transition">
+                <div class="flex items-start gap-4">
+                    <div class="flex-1">
+                        <h4 class="text-xl font-bold text-white mb-2">{{ rec.title }}</h4>
+                        <p class="text-gray-300 mb-3">{{ rec.message }}</p>
+                        <div class="bg-white/10 rounded-lg p-3">
+                            <p class="text-green-400 font-semibold">Action recommandée :</p>
+                            <p class="text-white">{{ rec.action }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= STATS DESCRIPTIVES ================= -->
+    {% if stats %}
+    <section class="mb-16">
+        <h3 class="text-2xl font-bold text-white mb-10 text-center">Statistiques Descriptives</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="desc-card rounded-2xl p-8 flex flex-col justify-center">
+                <p class="text-green-400 font-bold text-lg mb-6">Superficie (ha)</p>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Moyenne</span>
+                        <span class="text-white font-bold text-xl">{{ stats.superficie_moy }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Médiane</span>
+                        <span class="text-blue-400 font-bold text-xl">{{ stats.superficie_med }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Écart-type</span>
+                        <span class="text-yellow-400 font-bold text-xl">{{ stats.superficie_std }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="desc-card rounded-2xl p-8 flex flex-col justify-center">
+                <p class="text-blue-400 font-bold text-lg mb-6">Rendement (kg/ha)</p>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Moyenne</span>
+                        <span class="text-white font-bold text-xl">{{ stats.rendement_moy }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Médiane</span>
+                        <span class="text-blue-400 font-bold text-xl">{{ stats.rendement_med }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Écart-type</span>
+                        <span class="text-yellow-400 font-bold text-xl">{{ stats.rendement_std }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="desc-card rounded-2xl p-8 flex flex-col justify-center md:col-span-2">
+                <p class="text-yellow-400 font-bold text-lg mb-6">Prix de vente (FCFA)</p>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Moyenne</span>
+                        <span class="text-white font-bold text-xl">{{ stats.prix_moy }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Médiane</span>
+                        <span class="text-blue-400 font-bold text-xl">{{ stats.prix_med }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Écart-type</span>
+                        <span class="text-yellow-400 font-bold text-xl">{{ stats.prix_std }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= GRAPHES DE BASE ================= -->
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-10 text-center">Visualisations</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {% if graph_hist %}
+            <div class="graph-card rounded-2xl p-4">
+                <div id="graph_hist"></div>
+            </div>
+            {% endif %}
+
+            {% if graph_box %}
+            <div class="graph-card rounded-2xl p-4">
+                <div id="graph_box"></div>
+            </div>
+            {% endif %}
+
+            {% if graph_heatmap %}
+            <div class="graph-card rounded-2xl p-4">
+                <div id="graph_heatmap"></div>
+            </div>
+            {% endif %}
+
+            {% if graph_culture %}
+            <div class="graph-card rounded-2xl p-4">
+                <div id="graph_culture"></div>
+            </div>
+            {% endif %}
+
+        </div>
+    </section>
+
+    <!-- ================= GRAPHIQUES DES MODELES ================= -->
+    {% if graph_reg_simple %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Visualisation Régression Simple</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_reg_simple"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if graph_reg_multiple %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Visualisation Régression Multiple</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_reg_multiple"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if graph_pca %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Visualisation PCA</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_pca"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if graph_confusion %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Matrice de Confusion</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_confusion"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if graph_cluster %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Visualisation des Clusters</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_cluster"></div>
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+
+<!-- Section Export bas de page avec nouveaux boutons stylisés -->
+<section class="mb-8">
+    <div class="flex justify-center gap-4 flex-wrap">
+        <a href="{% url 'export_excel' %}" 
+           class="btn-modern btn-excel">
+            Exporter en Excel
+        </a>
+        <a href="{% url 'export_pdf' %}" 
+           class="btn-modern btn-pdf">
+            Exporter en PDF
+        </a>
+        <a href="{% url 'generer_alertes' %}" 
+           class="btn-modern btn-alerts">
+            Générer les alertes
+        </a>
+        <a href="{% url 'importer_donnees' %}" 
+           class="btn-modern btn-import">
+            Importer des données
+        </a>
+        <button onclick="window.print()" 
+                class="btn-modern btn-print">
+            Imprimer
+        </button>
+    </div>
+</section>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="relative z-20 mt-16 bg-black/60 border-t border-white/20 py-8 text-center text-gray-300">
+INF232 EC2 • Analyse intelligente des données agricoles
+</footer>
+
+<!-- ================= PLOTLY JS ================= -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var config = {responsive: true};
+    var layout_override = {height: 360};
+
+    function adjustGraphHeight() {
+        var newHeight = window.innerWidth < 640 ? 250 : (window.innerWidth < 768 ? 320 : 360);
+        layout_override.height = newHeight;
+        {% if graph_hist %} Plotly.relayout('graph_hist', {height: newHeight}); {% endif %}
+        {% if graph_box %} Plotly.relayout('graph_box', {height: newHeight}); {% endif %}
+        {% if graph_heatmap %} Plotly.relayout('graph_heatmap', {height: newHeight}); {% endif %}
+        {% if graph_culture %} Plotly.relayout('graph_culture', {height: newHeight}); {% endif %}
+        {% if graph_reg_simple %} Plotly.relayout('graph_reg_simple', {height: newHeight}); {% endif %}
+        {% if graph_reg_multiple %} Plotly.relayout('graph_reg_multiple', {height: newHeight}); {% endif %}
+        {% if graph_pca %} Plotly.relayout('graph_pca', {height: newHeight}); {% endif %}
+        {% if graph_confusion %} Plotly.relayout('graph_confusion', {height: newHeight}); {% endif %}
+        {% if graph_cluster %} Plotly.relayout('graph_cluster', {height: newHeight}); {% endif %}
+    }
+
+    {% if graph_hist %}
+    var hist_data = {{ graph_hist|safe }};
+    Plotly.newPlot('graph_hist', hist_data.data, {...hist_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_box %}
+    var box_data = {{ graph_box|safe }};
+    Plotly.newPlot('graph_box', box_data.data, {...box_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_heatmap %}
+    var heatmap_data = {{ graph_heatmap|safe }};
+    Plotly.newPlot('graph_heatmap', heatmap_data.data, {...heatmap_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_culture %}
+    var culture_data = {{ graph_culture|safe }};
+    Plotly.newPlot('graph_culture', culture_data.data, {...culture_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_reg_simple %}
+    var reg_simple_data = {{ graph_reg_simple|safe }};
+    Plotly.newPlot('graph_reg_simple', reg_simple_data.data, {...reg_simple_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_reg_multiple %}
+    var reg_multiple_data = {{ graph_reg_multiple|safe }};
+    Plotly.newPlot('graph_reg_multiple', reg_multiple_data.data, {...reg_multiple_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_pca %}
+    var pca_data_graph = {{ graph_pca|safe }};
+    Plotly.newPlot('graph_pca', pca_data_graph.data, {...pca_data_graph.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_confusion %}
+    var confusion_data = {{ graph_confusion|safe }};
+    Plotly.newPlot('graph_confusion', confusion_data.data, {...confusion_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_cluster %}
+    var cluster_data = {{ graph_cluster|safe }};
+    Plotly.newPlot('graph_cluster', cluster_data.data, {...cluster_data.layout, ...layout_override}, config);
+    {% endif %}
+
+    window.addEventListener('resize', adjustGraphHeight);
+
+    // ===== DIAPORAMA =====
+    function startSlideshow(slidesId, dotsId, interval) {
+        var slides = document.querySelectorAll('#' + slidesId + ' .slide');
+        var dots = document.querySelectorAll('#' + dotsId + ' .slide-dot');
+        var current = 0;
+        if (slides.length === 0) return;
+        setInterval(function() {
+            slides[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = (current + 1) % slides.length;
+            slides[current].classList.add('active');
+            dots[current].classList.add('active');
+        }, interval);
+    }
+
+    startSlideshow('slides-superficie',  'dots-superficie',  3000);
+    startSlideshow('slides-revenus',     'dots-revenus',     3500);
+    startSlideshow('slides-cout',        'dots-cout',        4000);
+    startSlideshow('slides-benefice',    'dots-benefice',    3200);
+    startSlideshow('slides-regsimple',   'dots-regsimple',   3700);
+    startSlideshow('slides-regmultiple', 'dots-regmultiple', 4200);
+    startSlideshow('slides-classif',     'dots-classif',     3300);
+    startSlideshow('slides-cluster',     'dots-cluster',     3800);
+    startSlideshow('slides-pca',         'dots-pca',         4500);
+</script>
+
+<style media="print">
+    @media print {
+        .fixed, video, header, footer, .btn-modern, .bg-yellow-600, .bg-green-600, .bg-red-600, .bg-blue-600 {
+            display: none !important;
+        }
+        body { background: white !important; color: black !important; }
+        .bg-white\/10, .bg-black\/50, .bg-black\/60 {
+            background: white !important;
+            border: 1px solid #ddd !important;
+        }
+        .rec-card-3d, .desc-card, .graph-card, .slideshow-card {
+            background: white !important;
+            border: 1px solid #ccc !important;
+            transform: none !important;
+        }
+        .text-white, .text-green-400, .text-blue-400, .text-red-400, .text-yellow-400 {
+            color: black !important;
+        }
+        .btn-action {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-action:hover { transform: translateY(-2px) scale(1.02); }
+    }
+</style>
+
+</body>
+</html>

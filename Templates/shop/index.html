@@ -1,0 +1,89 @@
+{% comment %} {% extends 'base.html' %}
+
+{% block content %}
+
+<div class="flex justify-center">
+    <div class="w-full max-w-md">
+       <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+         <div class="flex items-center border-b-2 border-teal-500 py-2">
+         <div class="flex-1"> 
+          <input type="search" name="item-name" class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" placeholder="Rechercher..."></div>
+          <div class="flex-shrink-0">
+            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Rechercher</button>
+          </div>
+        </div>
+       </form>
+    </div>
+</div>
+
+
+
+
+
+
+{% endblock %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mon Site</title>
+    <link rel="stylesheet" href="{% static 'output.css' %}?v=1">
+</head>
+<body class="m-0 p-0 min-h-screen font-sans">
+
+  <!-- HEADER -->
+  <header class="w-full bg-black flex items-center justify-between px-10 py-4">
+    <div class="text-white text-xl font-bold tracking-widest">LOGO</div>
+    <nav class="flex gap-10 text-white text-sm uppercase tracking-widest">
+      <a href="#" class="hover:text-gray-300 transition">Accueil</a>
+      <a href="#" class="hover:text-gray-300 transition">Contacts</a>
+    </nav>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex flex-col items-center w-full bg-white">
+
+    <!-- ZONE HERO : ligne verticale centrale avec texte centré -->
+    <div class="flex flex-col items-center justify-center py-16 gap-6">
+      <h1 class="text-4xl font-bold tracking-tight text-gray-900 text-center">
+        Bienvenue sur notre site
+      </h1>
+      <p class="text-gray-500 text-center max-w-md">
+        Découvrez nos services et prenez contact avec nous.
+      </p>
+      <div class="w-px bg-black h-24"></div>
+    </div>
+
+    <!-- ZONE BAS : boîte rectangulaire centrée -->
+    <section class="w-3/5 border-t-4 border-black mb-20">
+      <div class="border-l border-r border-b border-black p-10">
+
+        <!-- Grille de cards à l'intérieur de la boîte -->
+        <div class="grid grid-cols-3 gap-6">
+
+          <div class="bg-gray-50 border border-gray-200 rounded p-6">
+            <h2 class="font-semibold text-gray-800 mb-2">Service 1</h2>
+            <p class="text-gray-500 text-sm">Description courte du premier service proposé.</p>
+          </div>
+
+          <div class="bg-gray-50 border border-gray-200 rounded p-6">
+            <h2 class="font-semibold text-gray-800 mb-2">Service 2</h2>
+            <p class="text-gray-500 text-sm">Description courte du deuxième service proposé.</p>
+          </div>
+
+          <div class="bg-gray-50 border border-gray-200 rounded p-6">
+            <h2 class="font-semibold text-gray-800 mb-2">Service 3</h2>
+            <p class="text-gray-500 text-sm">Description courte du troisième service proposé.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html> {% endcomment %}

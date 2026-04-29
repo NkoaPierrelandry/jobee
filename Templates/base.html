@@ -1,0 +1,147 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr" class="h-screen overflow-hidden overscroll-none">
+<head>
+  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon Site</title>
+  <link rel="stylesheet" href="{% static 'output.css' %}?v=1">
+</head>
+<body class="m-0 min-h-screen overflow-y-auto overscroll-none pointer-events-auto"> 
+<!-- MAIN -->
+<main class="relative h-screen w-full overflow-hidden flex flex-col justify-center items-center pointer-events-auto">
+
+    <!-- 🎥 VIDEO BACKGROUND -->
+    <video autoplay muted loop playsinline class="absolute top-0 left-0 w-screen h-screen object-cover z-0 pointer-events-none">
+      <source src="{% static 'videos/agriculture.mp4' %}" type="video/mp4">
+    </video>
+    
+    <div class =" h-9">
+    
+    </div>
+    <section> 
+      <div class ="auto-cols-auto  h-16 w-16">
+      
+      </div>
+    </section>
+
+
+    <!-- ZONE HERO -->
+  <div class="relative z-10 flex flex-col items-center justify-center py-16 gap-6 mr-[33%] pointer-events-auto">    <div class ="h-23">
+    </div>
+      <h1 class="text-4xl font-bold tracking-tight text-gray-900 text-center animate-bounce">
+        Bienvenue sur notre site
+      </h1>
+      <p class="text-white text-center max-w-md ">
+        Transformez vos données agricoles en décisions intelligentes et boostez vos récoltes dès aujourd'hui.
+      </p>
+    </div>
+
+    <!-- ZONE BAS -->
+        <section class="relative z-10 w-3/5 mb-20 mr-[33%] pointer-events-auto">
+  
+
+        <div class="grid grid-cols-3 gap-5">
+
+          <button onclick="exportPDF()" class="bg-white/10 backdrop-blur-md border border-white/20 rounded p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:bg-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)] cursor-pointer w-full text-left pointer-events-auto">
+            <h2 class="font-semibold text-black mb-2"> Exporter en PDF</h2>
+            <p class="text-gray-500 text-sm">Téléchargez vos données agricoles au format PDF.</p>
+          </button>
+
+          <button onclick="exportExcel()" class="bg-white/10 backdrop-blur-md border border-white/20 rounded p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:bg-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)] cursor-pointer w-full text-left pointer-events-auto">
+            <h2 class="font-semibold text-gray-800 mb-2"> Exporter en Excel</h2>
+            <p class="text-gray-500 text-sm">Exportez vos données au format Excel.</p>
+          </button>
+
+          <button onclick="generateAlerts()" class="bg-white/10 backdrop-blur-md border border-white/20 rounded p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:bg-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)] cursor-pointer w-full text-left pointer-events-auto">
+            <h2 class="font-semibold text-gray-800 mb-2"> Générer Alertes</h2>
+            <p class="text-gray-500 text-sm">Créez des alertes automatiques en temps réel.</p>
+          </button>
+
+          <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:bg-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)] cursor-pointer">            <h2 class="font-semibold text-gray-800 mb-2">Analyse des performances</h2>
+            <p class="text-gray-500 text-sm">Analysez vos données agricoles pour identifier les meilleures pratiques et améliorer vos rendements..</p>
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:bg-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)] cursor-pointer">            <h2 class="font-semibold text-gray-800 mb-2">Suivi des activités agricoles</h2>
+            <p class="text-gray-500 text-sm">Organisez vos cultures, planifiez les activités agricoles et gardez une trace de chaque étape de production..</p>
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:bg-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)] cursor-pointer">            <h2 class="font-semibold text-gray-800 mb-2">Dashboard intelligent</h2>
+            <p class="text-gray-500 text-sm">Accédez à un tableau de bord complet avec des statistiques, graphiques et indicateurs pour piloter votre exploitation en un coup d'œil..</p>
+          </div>
+ 
+
+        </div>
+      </div>
+       
+    </section>
+<div class="absolute top-0 right-0 w-1/3 h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded p-6 shadow-xl pointer-events-auto">
+
+  <form class="flex flex-col gap-3 pointer-events-auto">
+
+    <input type="text" placeholder="Nom" class="p-2 rounded border border-gray-300">
+    <input type="email" placeholder="Email" class="p-2 rounded border border-gray-300">
+    <input type="password" placeholder="Mot de passe" class="p-2 rounded border border-gray-300">
+
+    <button class="bg-green-600 text-white p-2 rounded hover:bg-green-700 transition">
+      S'inscrire
+    </button>
+    
+  </form>
+
+</div>
+    <section> 
+      <div class ="auto-cols-auto  h-16 w-16">
+      
+      </div>
+    </section>
+
+</main>
+
+<script>
+function exportPDF() {
+  alert(' Exportation en PDF en cours...');
+  // Appel API pour générer le PDF
+  fetch('/api/export-pdf/', {method: 'POST'})
+    .then(r => r.blob())
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'donnees_agricoles.pdf';
+      a.click();
+    })
+    .catch(e => alert('Erreur: ' + e.message));
+}
+
+function exportExcel() {
+  alert(' Exportation en Excel en cours...');
+  // Appel API pour générer l'Excel
+  fetch('/api/export-excel/', {method: 'POST'})
+    .then(r => r.blob())
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'donnees_agricoles.xlsx';
+      a.click();
+    })
+    .catch(e => alert('Erreur: ' + e.message));
+}
+
+function generateAlerts() {
+  alert(' Génération des alertes en cours...');
+  // Appel API pour générer les alertes
+  fetch('/api/generate-alerts/', {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+      alert(' ' + data.message);
+    })
+    .catch(e => alert('Erreur: ' + e.message));
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1145 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analyse des données</title>
+<link rel="stylesheet" href="{% static 'output.css' %}">
+<style>
+    /* Police unifiée pour toutes les pages */
+    * {
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    
+    body {
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    
+    /* Toutes les cards ont la même taille que les graphes */
+    .stat-card,
+    .desc-card {
+        width: 100%;
+        height: 400px;
+    }
+    .graph-card {
+        width: 100%;
+        height: 400px;
+    }
+    .graph-card > div {
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* ===== DIAPORAMA BACKGROUND ===== */
+    .slideshow-card {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 400px;
+        border-radius: 1rem;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .slideshow-card .slides {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+    .slideshow-card .slide {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        transition: opacity 1.5s ease-in-out;
+    }
+    .slideshow-card .slide.active {
+        opacity: 1;
+    }
+    .slideshow-card .overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 1;
+    }
+    .slideshow-card .content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    .slide-dots {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+        display: flex;
+        gap: 6px;
+    }
+    .slide-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.4);
+        transition: background 0.3s;
+    }
+    .slide-dot.active {
+        background: white;
+    }
+
+    /* ===== BACKGROUNDS INTELLIGENTS POUR TOUTES LES CARTES ===== */
+    /* Background intelligent pour les cartes du tableau de bord (slideshow-card) */
+    .slideshow-card {
+        background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(20,40,10,0.7) 100%);
+        backdrop-filter: blur(2px);
+    }
+    
+    /* Background intelligent pour les cartes de statistiques descriptives */
+    .desc-card {
+        background: linear-gradient(115deg, rgba(0,0,0,0.7) 0%, rgba(30,50,20,0.6) 100%);
+        backdrop-filter: blur(3px);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Animation de fond pour les desc-card */
+    .desc-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(70,130,40,0.15) 0%, transparent 70%);
+        animation: pulseGlow 8s ease-in-out infinite;
+        pointer-events: none;
+    }
+    
+    /* Background intelligent pour les cartes de graphiques */
+    .graph-card {
+        background: linear-gradient(145deg, rgba(10,20,5,0.8) 0%, rgba(0,0,0,0.6) 100%);
+        backdrop-filter: blur(2px);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Animation de fond pour les graph-card */
+    .graph-card::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        left: -30%;
+        width: 160%;
+        height: 160%;
+        background: repeating-linear-gradient(45deg, rgba(50,100,30,0.05) 0px, rgba(50,100,30,0.05) 2px, transparent 2px, transparent 8px);
+        animation: shiftBg 20s linear infinite;
+        pointer-events: none;
+    }
+    
+    /* Keyframes pour les animations intelligentes */
+    @keyframes pulseGlow {
+        0%, 100% { transform: scale(1); opacity: 0.3; }
+        50% { transform: scale(1.1); opacity: 0.6; }
+    }
+    
+    @keyframes shiftBg {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(20px, 20px) rotate(5deg); }
+    }
+    
+    /* ===== ANIMATION 3D POUR LES CARDS DE RECOMMANDATIONS ===== */
+    .rec-card-3d {
+        transform-style: preserve-3d;
+        transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.3s ease;
+        background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,40,15,0.75) 100%);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .rec-card-3d::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(125deg, 
+            rgba(80,180,60,0.1) 0%, 
+            rgba(50,120,30,0.05) 50%, 
+            rgba(30,80,20,0.1) 100%);
+        pointer-events: none;
+    }
+    
+    .rec-card-3d::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 30% 40%, rgba(100,200,70,0.08), transparent 60%);
+        animation: rotateGlow 12s linear infinite;
+        pointer-events: none;
+    }
+    
+    .rec-card-3d:hover {
+        transform: perspective(1000px) rotateX(3deg) rotateY(6deg) translateY(-8px);
+        box-shadow: 0 25px 40px -15px rgba(0,0,0,0.5), 0 0 0 1px rgba(80,200,70,0.3);
+        border-color: rgba(80,200,70,0.4);
+    }
+    
+    @keyframes rotateGlow {
+        0% { transform: rotate(0deg) scale(1); opacity: 0.3; }
+        50% { transform: rotate(180deg) scale(1.2); opacity: 0.6; }
+        100% { transform: rotate(360deg) scale(1); opacity: 0.3; }
+    }
+    
+    /* Conservation de l'animation 3D sur mobile avec effet réduit */
+    @media (max-width: 768px) {
+        .rec-card-3d:hover {
+            transform: perspective(800px) rotateX(1deg) rotateY(3deg) translateY(-4px);
+        }
+    }
+    
+    /* Background intelligent supplémentaire pour les cartes de diaporama */
+    .slideshow-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 30% 40%, rgba(60,120,30,0.15), transparent 70%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* ===== STYLES DES BOUTONS MODERNES (Style SEARCH/PURCHASE/FAVORITE/BILLING) ===== */
+    .btn-modern {
+        position: relative;
+        font-weight: 600;
+        padding: 0.75rem 1.8rem;
+        border-radius: 2rem;
+        border: none;
+        cursor: pointer;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
+        z-index: 1;
+    }
+    
+    /* Animation de bordure pour tous les boutons modernes */
+    .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, 
+            rgba(255,255,255,0.3), 
+            rgba(255,255,255,0.1),
+            rgba(255,255,255,0.3),
+            rgba(255,255,255,0.1),
+            rgba(255,255,255,0.3));
+        background-size: 300% 300%;
+        border-radius: 2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+        animation: borderPulse 3s ease infinite;
+    }
+    
+    .btn-modern:hover::before {
+        opacity: 1;
+    }
+    
+    .btn-modern::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255,255,255,0.2), 
+            transparent);
+        transition: left 0.5s ease;
+        z-index: -1;
+    }
+    
+    .btn-modern:hover::after {
+        left: 100%;
+    }
+    
+    /* Animation de bordure spécifique */
+    @keyframes borderPulse {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    /* Bouton Excel (style PURCHASE) */
+    .btn-excel {
+        background: linear-gradient(135deg, #1e7e34 0%, #0f5e26 100%);
+        box-shadow: 0 4px 15px rgba(30,126,52,0.3);
+    }
+    .btn-excel:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(30,126,52,0.5);
+        background: linear-gradient(135deg, #23943e 0%, #147a30 100%);
+    }
+    
+    /* Bouton PDF (style SEARCH) */
+    .btn-pdf {
+        background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+        box-shadow: 0 4px 15px rgba(220,53,69,0.3);
+    }
+    .btn-pdf:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(220,53,69,0.5);
+        background: linear-gradient(135deg, #f23d4e 0%, #c9303f 100%);
+    }
+    
+    /* Bouton Alertes (style FAVORITE) */
+    .btn-alerts {
+        background: linear-gradient(135deg, #e0a800 0%, #b8860b 100%);
+        box-shadow: 0 4px 15px rgba(224,168,0,0.3);
+    }
+    .btn-alerts:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(224,168,0,0.5);
+        background: linear-gradient(135deg, #ffc107 0%, #d4a00a 100%);
+    }
+    
+    /* Bouton Imprimer (style BILLING) */
+    .btn-print {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+    }
+    .btn-print:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,123,255,0.5);
+        background: linear-gradient(135deg, #1a8cff 0%, #0069d9 100%);
+    }
+    
+    /* Bouton Importer données */
+    .btn-import {
+        background: linear-gradient(135deg, #6f42c1 0%, #553a9a 100%);
+        box-shadow: 0 4px 15px rgba(111,66,193,0.3);
+    }
+    .btn-import:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(111,66,193,0.5);
+        background: linear-gradient(135deg, #8455d4 0%, #6642b0 100%);
+    }
+    
+    /* Animation de pulsation au clic */
+    .btn-modern:active {
+        transform: translateY(-1px) scale(0.98);
+    }
+
+    /* ===== AMÉLIORATIONS DE PRÉSENTATION ===== */
+    /* Titres plus élégants */
+    h2, h3, .text-4xl, .text-2xl {
+        text-shadow: 0 2px 15px rgba(0,0,0,0.4);
+        letter-spacing: -0.02em;
+    }
+    
+    /* Effet glassmorphism amélioré sur les cards */
+    .slideshow-card, .desc-card, .graph-card, .rec-card-3d {
+        backdrop-filter: blur(8px);
+        transition: all 0.3s ease;
+    }
+    
+    /* Bordures plus fines et lumineuses */
+    .slideshow-card, .desc-card, .graph-card, .rec-card-3d {
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    
+    /* Animation d'apparition subtile pour les sections */
+    section {
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
+    }
+    
+    section:nth-child(1) { animation-delay: 0.05s; }
+    section:nth-child(2) { animation-delay: 0.1s; }
+    section:nth-child(3) { animation-delay: 0.15s; }
+    section:nth-child(4) { animation-delay: 0.2s; }
+    section:nth-child(5) { animation-delay: 0.25s; }
+    section:nth-child(6) { animation-delay: 0.3s; }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Amélioration des alertes */
+    .alert-card {
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+    }
+    .alert-card:hover {
+        transform: translateX(5px);
+    }
+
+    /* ===== AJOUTS RESPONSIVES SANS MODIFIER LA STRUCTURE ===== */
+    @media (max-width: 768px) {
+        .stat-card, .desc-card, .graph-card, .slideshow-card { height: 320px; }
+        .text-4xl { font-size: 1.8rem !important; }
+        .text-2xl { font-size: 1.4rem !important; }
+        .text-xl { font-size: 1.1rem !important; }
+        .text-lg { font-size: 1rem !important; }
+        .p-6, .p-8 { padding: 1rem !important; }
+        .gap-6 { gap: 1rem !important; }
+        .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }
+        .h-20 { height: 4rem !important; }
+        .pt-28 { padding-top: 6rem !important; }
+        .btn-modern { padding: 0.6rem 1.2rem !important; font-size: 0.85rem !important; }
+        section { animation: none !important; opacity: 1 !important; }
+    }
+    @media (max-width: 640px) {
+        .stat-card, .desc-card, .graph-card, .slideshow-card { height: 280px; }
+        .text-4xl { font-size: 1.5rem !important; }
+        .text-2xl { font-size: 1.2rem !important; }
+        .text-xl { font-size: 1rem !important; }
+        .text-lg { font-size: 0.9rem !important; }
+        .text-base { font-size: 0.85rem !important; }
+        .grid { gap: 0.75rem !important; }
+        .mb-16 { margin-bottom: 2rem !important; }
+        .mt-4 { margin-top: 0.5rem !important; }
+        .space-y-4 { gap: 0.5rem !important; }
+        .rounded-2xl { border-radius: 1rem !important; }
+        .btn-modern { padding: 0.5rem 1rem !important; font-size: 0.75rem !important; }
+    }
+    @media (max-width: 480px) {
+        .stat-card, .desc-card, .graph-card, .slideshow-card { height: 250px; }
+        .text-4xl { font-size: 1.2rem !important; }
+        .text-gray-300.text-lg { font-size: 0.85rem !important; }
+        .p-6, .p-8 { padding: 0.75rem !important; }
+        .space-y-2 { gap: 0.25rem !important; }
+        .h-9, .h-12 { display: none !important; }
+        .btn-modern { padding: 0.4rem 0.8rem !important; font-size: 0.7rem !important; }
+    }
+    @media (max-width: 768px) {
+        .js-plotly-plot .plotly .main-svg { border-radius: 0.5rem; }
+    }
+    @media (max-width: 640px) {
+        .overflow-x-hidden { overflow-x: auto !important; }
+        body { overflow-x: auto !important; }
+    }
+    @media (hover: none) and (pointer: coarse) {
+        .rec-card-3d:hover {
+            transform: none !important;
+        }
+        .hover\:scale-105:hover { transform: none !important; }
+        .transition { transition: none !important; }
+        .btn-modern:hover { transform: none !important; }
+        .btn-modern:hover::after { left: -100% !important; }
+    }
+    .btn-action {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
+</style>
+</head>
+<body class="min-h-screen relative text-white bg-black overflow-x-hidden">
+
+<!-- FOND VIDEO -->
+<video autoplay muted loop playsinline
+class="fixed inset-0 w-full h-full object-cover z-0 opacity-60">
+<source src="{% static 'videos/agriculture.mp4' %}" type="video/mp4">
+</video>
+<div class="fixed inset-0 bg-black/50 z-10 pointer-events-none"></div>
+ <!-- HEADER -->
+<header class="fixed top-0 left-0 w-full z-50">
+
+  <!-- Barre principale -->
+  <div class="mx-2 sm:mx-4 mt-3 rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-7 h-7 sm:w-9 sm:h-9 bg-gradient-to-br from-green-400 to-green-700 rounded-xl flex items-center justify-center text-base shadow-lg shadow-green-900/40">
+          
+        </div>
+        <div class="flex flex-col leading-none">
+          <span class="font-bold text-white text-sm sm:text-base tracking-tight">AgriCam</span>
+          <span class="text-green-400 text-[8px] sm:text-[10px] font-medium tracking-widest uppercase">Platform</span>
+        </div>
+      </div>
+
+      <!-- Navigation centrale -->
+      <nav class="hidden md:flex items-center gap-1 bg-white/5 rounded-xl px-2 py-1 border border-white/10">
+        <a href="{% url 'home' %}" class="text-white/70 text-xs font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 no-underline">
+          Accueil
+        </a>
+        <a href="{% url 'ajouter_recolte' %}" class="text-white/70 text-xs font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 no-underline">
+          Collecte
+        </a>
+        <a href="{% url 'liste_producteurs' %}" class="text-white/70 text-xs font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 no-underline">
+          Producteurs
+        </a>
+        <a href="{% url 'analyses' %}" class="text-white/70 text-xs font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 no-underline">
+          Analyses
+        </a>
+      </nav>
+
+      <!-- Droite : badge + bouton -->
+      <div class="flex items-center gap-2 sm:gap-3">
+
+        <!-- Badge statut -->
+        <div class="hidden md:flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1">
+          <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <span class="text-green-400 text-[11px] font-medium">En ligne</span>
+        </div>
+
+        <!-- Bouton CTA -->
+        <a href="{% url 'ajouter_recolte' %}" class="no-underline">
+          <button class="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white text-xs font-bold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg shadow-green-900/40">
+            <span>+</span>
+            <span class="hidden sm:inline">Collecter</span>
+            <span class="sm:hidden">Coll.</span>
+          </button>
+        </a>
+
+         <!-- Bouton  Retour-->
+        <a href="{% url 'home' %}" class="no-underline">
+          <button class="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white text-xs font-bold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg shadow-green-900/40">
+            <span>+</span>
+            <span class="hidden sm:inline">Retour</span>
+            <span class="sm:hidden">Coll.</span>
+          </button>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class = "h-9"></div>
+
+ {% if recommendations %}
+<section class="mb-16">
+    <h3 class="text-2xl font-bold text-white mb-10 text-center">Recommandations IA — Gemini</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for rec in recommendations %}
+        <div class="bg-white/10 border border-white/20 rounded-2xl p-6 hover:scale-105 transition">
+
+            <!-- Badge priorité -->
+            <div class="mb-4">
+                {% if rec.priorite == 'haute' %}
+                <span class="bg-red-500/20 text-red-300 text-xs font-bold px-3 py-1 rounded-full border border-red-500/30">
+                    PRIORITE HAUTE
+                </span>
+                {% elif rec.priorite == 'moyenne' %}
+                <span class="bg-yellow-500/20 text-yellow-300 text-xs font-bold px-3 py-1 rounded-full border border-yellow-500/30">
+                    PRIORITE MOYENNE
+                </span>
+                {% else %}
+                <span class="bg-blue-500/20 text-blue-300 text-xs font-bold px-3 py-1 rounded-full border border-blue-500/30">
+                    PRIORITE BASSE
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Titre -->
+            <h4 class="text-xl font-bold text-white mb-3">{{ rec.titre }}</h4>
+
+            <!-- Message analyse -->
+            <p class="text-gray-300 text-sm mb-4 leading-relaxed">{{ rec.message }}</p>
+
+            <!-- Action recommandée -->
+            <div class="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
+                <p class="text-green-400 font-semibold text-sm mb-1">Action recommandée</p>
+                <p class="text-white text-sm">{{ rec.action }}</p>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+
+<!-- ================= CONTENT ================= -->
+<main class="relative z-20 pt-28 px-4 md:px-6 pb-20">
+
+<!-- TITLE -->
+<section class="text-center mb-16">
+<h2 class="text-4xl font-bold text-white">Analyse des Données Agricoles</h2>
+<p class="text-gray-200 mt-2">Tableau de bord intelligent des performances</p>
+</section>
+
+<div class="max-w-7xl mx-auto">
+
+<!-- Section Export avec nouveaux boutons stylisés -->
+<section class="mb-8">
+    <div class="flex justify-center gap-4 flex-wrap">
+        <a href="{% url 'export_excel' %}" 
+           class="btn-modern btn-excel">
+            Exporter en Excel
+        </a>
+        <a href="{% url 'export_pdf' %}" 
+           class="btn-modern btn-pdf">
+            Exporter en PDF
+        </a>
+        <a href="{% url 'generer_alertes' %}" 
+           class="btn-modern btn-alerts">
+            Générer les alertes
+        </a>
+        <button onclick="window.print()" 
+                class="btn-modern btn-print">
+            Imprimer
+        </button>
+    </div>
+</section>
+
+    <!-- ================= TABLEAU DE BORD ================= -->
+    <section class="mb-16">
+        <h3 class="text-2xl font-bold text-white mb-10 text-center">Tableau de Bord</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- CARD 1 — Superficie -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-superficie">
+                <div class="slides" id="slides-superficie">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-gray-200 text-lg font-medium">Superficie totale</p>
+                    <h3 class="text-5xl font-bold text-green-400 mt-4">{{ total_superficie }} ha</h3>
+                    <p class="text-gray-300 text-sm mt-3">Surface agricole totale exploitée</p>
+                </div>
+                <div class="slide-dots" id="dots-superficie">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 2 — Revenus -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-revenus">
+                <div class="slides" id="slides-revenus">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-gray-200 text-lg font-medium">Revenus totaux</p>
+                    <h3 class="text-4xl font-bold text-blue-400 mt-4">{{ total_revenu }} FCFA</h3>
+                    <p class="text-gray-300 text-sm mt-3">Chiffre d'affaires de toutes les récoltes</p>
+                </div>
+                <div class="slide-dots" id="dots-revenus">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 3 — Coût -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-cout">
+                <div class="slides" id="slides-cout">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-gray-200 text-lg font-medium">Coût total</p>
+                    <h3 class="text-4xl font-bold text-red-400 mt-4">{{ cout_total }} FCFA</h3>
+                    <p class="text-gray-300 text-sm mt-3">Dépenses de production agricole</p>
+                </div>
+                <div class="slide-dots" id="dots-cout">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 4 — Bénéfice -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-benefice">
+                <div class="slides" id="slides-benefice">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1543362906-acfc16c67564?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-gray-200 text-lg font-medium">Bénéfice net</p>
+                    <h3 class="text-4xl font-bold text-yellow-400 mt-4">{{ benefice }} FCFA</h3>
+                    <p class="text-gray-300 text-sm mt-3">Profit après déduction des coûts</p>
+                </div>
+                <div class="slide-dots" id="dots-benefice">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 5 — Régression simple -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-regsimple">
+                <div class="slides" id="slides-regsimple">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1666875753105-c63a6f3bdc86?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-green-300 font-bold text-lg">Régression simple</p>
+                    {% if reg_simple %}
+                        <p class="text-xl mt-4">Coef: <span class="text-green-400 font-bold">{{ reg_simple.coef }}</span></p>
+                        <p class="text-xl mt-2">Score R²: <span class="text-green-400 font-bold">{{ reg_simple.score }}</span></p>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-regsimple">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 6 — Régression multiple -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-regmultiple">
+                <div class="slides" id="slides-regmultiple">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1526628953301-3cd7e93a1429?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-blue-300 font-bold text-lg">Régression multiple</p>
+                    {% if reg_multiple %}
+                        <p class="text-xl mt-4">Score R²: <span class="text-blue-400 font-bold">{{ reg_multiple.score }}</span></p>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-regmultiple">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 7 — Classification -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-classif">
+                <div class="slides" id="slides-classif">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1677442136019-21780ecad979?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-yellow-300 font-bold text-lg">Classification</p>
+                    {% if classification %}
+                        <p class="text-xl mt-4">Accuracy: <span class="text-yellow-400 font-bold">{{ classification.accuracy }}</span></p>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-classif">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 8 — Clustering -->
+            <div class="slideshow-card hover:scale-105 transition" id="card-cluster">
+                <div class="slides" id="slides-cluster">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1560493676-04071c5f467b?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1569025743873-ea3a9ade89f9?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-purple-300 font-bold text-lg">Clustering K-Means</p>
+                    {% if clusters %}
+                        <div class="text-lg mt-4 space-y-2">
+                        {% for key, value in clusters.items %}
+                            <p>Cluster {{ key }} : <span class="text-purple-400 font-bold">{{ value }}</span></p>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-cluster">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+            <!-- CARD 9 — PCA -->
+            <div class="slideshow-card hover:scale-105 transition md:col-span-2" id="card-pca">
+                <div class="slides" id="slides-pca">
+                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80')"></div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1502101872923-d48509bff386?w=800&q=80')"></div>
+                </div>
+                <div class="overlay"></div>
+                <div class="content">
+                    <p class="text-pink-300 font-bold text-lg">PCA — Réduction de dimensionnalité</p>
+                    {% if pca %}
+                        <div class="text-lg mt-4 space-y-2">
+                            <p class="font-semibold text-gray-300">Variance expliquée :</p>
+                            {% for v in pca.variance_expliquee %}
+                                <p class="text-pink-400 font-bold">Composante {{ forloop.counter }} : {{ v }}</p>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-300 text-base mt-4">Pas assez de données</p>
+                    {% endif %}
+                </div>
+                <div class="slide-dots" id="dots-pca">
+                    <div class="slide-dot active"></div>
+                    <div class="slide-dot"></div>
+                    <div class="slide-dot"></div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= RECOMMANDATIONS PERSONNALISEES AVEC ANIMATION 3D ================= -->
+    {% if recommendations %}
+    <section class="mb-16">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Recommandations Personnalisées</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for rec in recommendations %}
+            <div class="rec-card-3d p-6 hover:scale-105 transition">
+                <div class="flex items-start gap-4">
+                    <div class="flex-1">
+                        <h4 class="text-xl font-bold text-white mb-2">{{ rec.title }}</h4>
+                        <p class="text-gray-300 mb-3">{{ rec.message }}</p>
+                        <div class="bg-white/10 rounded-lg p-3">
+                            <p class="text-green-400 font-semibold">Action recommandée :</p>
+                            <p class="text-white">{{ rec.action }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= STATS DESCRIPTIVES ================= -->
+    {% if stats %}
+    <section class="mb-16">
+        <h3 class="text-2xl font-bold text-white mb-10 text-center">Statistiques Descriptives</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="desc-card rounded-2xl p-8 flex flex-col justify-center">
+                <p class="text-green-400 font-bold text-lg mb-6">Superficie (ha)</p>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Moyenne</span>
+                        <span class="text-white font-bold text-xl">{{ stats.superficie_moy }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Médiane</span>
+                        <span class="text-blue-400 font-bold text-xl">{{ stats.superficie_med }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Écart-type</span>
+                        <span class="text-yellow-400 font-bold text-xl">{{ stats.superficie_std }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="desc-card rounded-2xl p-8 flex flex-col justify-center">
+                <p class="text-blue-400 font-bold text-lg mb-6">Rendement (kg/ha)</p>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Moyenne</span>
+                        <span class="text-white font-bold text-xl">{{ stats.rendement_moy }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Médiane</span>
+                        <span class="text-blue-400 font-bold text-xl">{{ stats.rendement_med }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Écart-type</span>
+                        <span class="text-yellow-400 font-bold text-xl">{{ stats.rendement_std }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="desc-card rounded-2xl p-8 flex flex-col justify-center md:col-span-2">
+                <p class="text-yellow-400 font-bold text-lg mb-6">Prix de vente (FCFA)</p>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Moyenne</span>
+                        <span class="text-white font-bold text-xl">{{ stats.prix_moy }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Médiane</span>
+                        <span class="text-blue-400 font-bold text-xl">{{ stats.prix_med }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-base">Écart-type</span>
+                        <span class="text-yellow-400 font-bold text-xl">{{ stats.prix_std }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= GRAPHES DE BASE ================= -->
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-10 text-center">Visualisations</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {% if graph_hist %}
+            <div class="graph-card rounded-2xl p-4">
+                <div id="graph_hist"></div>
+            </div>
+            {% endif %}
+
+            {% if graph_box %}
+            <div class="graph-card rounded-2xl p-4">
+                <div id="graph_box"></div>
+            </div>
+            {% endif %}
+
+            {% if graph_heatmap %}
+            <div class="graph-card rounded-2xl p-4">
+                <div id="graph_heatmap"></div>
+            </div>
+            {% endif %}
+
+            {% if graph_culture %}
+            <div class="graph-card rounded-2xl p-4">
+                <div id="graph_culture"></div>
+            </div>
+            {% endif %}
+
+        </div>
+    </section>
+
+    <!-- ================= GRAPHIQUES DES MODELES ================= -->
+    {% if graph_reg_simple %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Visualisation Régression Simple</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_reg_simple"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if graph_reg_multiple %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Visualisation Régression Multiple</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_reg_multiple"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if graph_pca %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Visualisation PCA</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_pca"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if graph_confusion %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Matrice de Confusion</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_confusion"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if graph_cluster %}
+    <section class="mb-12">
+        <h3 class="text-2xl font-bold text-white mb-6 text-center">Visualisation des Clusters</h3>
+        <div class="graph-card rounded-2xl p-4">
+            <div id="graph_cluster"></div>
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+
+<!-- Section Export bas de page avec nouveaux boutons stylisés -->
+<section class="mb-8">
+    <div class="flex justify-center gap-4 flex-wrap">
+        <a href="{% url 'export_excel' %}" 
+           class="btn-modern btn-excel">
+            Exporter en Excel
+        </a>
+        <a href="{% url 'export_pdf' %}" 
+           class="btn-modern btn-pdf">
+            Exporter en PDF
+        </a>
+        <a href="{% url 'generer_alertes' %}" 
+           class="btn-modern btn-alerts">
+            Générer les alertes
+        </a>
+        <a href="{% url 'importer_donnees' %}" 
+           class="btn-modern btn-import">
+            Importer des données
+        </a>
+        <button onclick="window.print()" 
+                class="btn-modern btn-print">
+            Imprimer
+        </button>
+    </div>
+</section>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="relative z-20 mt-16 bg-black/60 border-t border-white/20 py-8 text-center text-gray-300">
+INF232 EC2 • Analyse intelligente des données agricoles
+</footer>
+
+<!-- ================= PLOTLY JS ================= -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var config = {responsive: true};
+    var layout_override = {height: 360};
+
+    function adjustGraphHeight() {
+        var newHeight = window.innerWidth < 640 ? 250 : (window.innerWidth < 768 ? 320 : 360);
+        layout_override.height = newHeight;
+        {% if graph_hist %} Plotly.relayout('graph_hist', {height: newHeight}); {% endif %}
+        {% if graph_box %} Plotly.relayout('graph_box', {height: newHeight}); {% endif %}
+        {% if graph_heatmap %} Plotly.relayout('graph_heatmap', {height: newHeight}); {% endif %}
+        {% if graph_culture %} Plotly.relayout('graph_culture', {height: newHeight}); {% endif %}
+        {% if graph_reg_simple %} Plotly.relayout('graph_reg_simple', {height: newHeight}); {% endif %}
+        {% if graph_reg_multiple %} Plotly.relayout('graph_reg_multiple', {height: newHeight}); {% endif %}
+        {% if graph_pca %} Plotly.relayout('graph_pca', {height: newHeight}); {% endif %}
+        {% if graph_confusion %} Plotly.relayout('graph_confusion', {height: newHeight}); {% endif %}
+        {% if graph_cluster %} Plotly.relayout('graph_cluster', {height: newHeight}); {% endif %}
+    }
+
+    {% if graph_hist %}
+    var hist_data = {{ graph_hist|safe }};
+    Plotly.newPlot('graph_hist', hist_data.data, {...hist_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_box %}
+    var box_data = {{ graph_box|safe }};
+    Plotly.newPlot('graph_box', box_data.data, {...box_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_heatmap %}
+    var heatmap_data = {{ graph_heatmap|safe }};
+    Plotly.newPlot('graph_heatmap', heatmap_data.data, {...heatmap_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_culture %}
+    var culture_data = {{ graph_culture|safe }};
+    Plotly.newPlot('graph_culture', culture_data.data, {...culture_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_reg_simple %}
+    var reg_simple_data = {{ graph_reg_simple|safe }};
+    Plotly.newPlot('graph_reg_simple', reg_simple_data.data, {...reg_simple_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_reg_multiple %}
+    var reg_multiple_data = {{ graph_reg_multiple|safe }};
+    Plotly.newPlot('graph_reg_multiple', reg_multiple_data.data, {...reg_multiple_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_pca %}
+    var pca_data_graph = {{ graph_pca|safe }};
+    Plotly.newPlot('graph_pca', pca_data_graph.data, {...pca_data_graph.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_confusion %}
+    var confusion_data = {{ graph_confusion|safe }};
+    Plotly.newPlot('graph_confusion', confusion_data.data, {...confusion_data.layout, ...layout_override}, config);
+    {% endif %}
+    {% if graph_cluster %}
+    var cluster_data = {{ graph_cluster|safe }};
+    Plotly.newPlot('graph_cluster', cluster_data.data, {...cluster_data.layout, ...layout_override}, config);
+    {% endif %}
+
+    window.addEventListener('resize', adjustGraphHeight);
+
+    // ===== DIAPORAMA =====
+    function startSlideshow(slidesId, dotsId, interval) {
+        var slides = document.querySelectorAll('#' + slidesId + ' .slide');
+        var dots = document.querySelectorAll('#' + dotsId + ' .slide-dot');
+        var current = 0;
+        if (slides.length === 0) return;
+        setInterval(function() {
+            slides[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = (current + 1) % slides.length;
+            slides[current].classList.add('active');
+            dots[current].classList.add('active');
+        }, interval);
+    }
+
+    startSlideshow('slides-superficie',  'dots-superficie',  3000);
+    startSlideshow('slides-revenus',     'dots-revenus',     3500);
+    startSlideshow('slides-cout',        'dots-cout',        4000);
+    startSlideshow('slides-benefice',    'dots-benefice',    3200);
+    startSlideshow('slides-regsimple',   'dots-regsimple',   3700);
+    startSlideshow('slides-regmultiple', 'dots-regmultiple', 4200);
+    startSlideshow('slides-classif',     'dots-classif',     3300);
+    startSlideshow('slides-cluster',     'dots-cluster',     3800);
+    startSlideshow('slides-pca',         'dots-pca',         4500);
+</script>
+
+<style media="print">
+    @media print {
+        .fixed, video, header, footer, .btn-modern, .bg-yellow-600, .bg-green-600, .bg-red-600, .bg-blue-600 {
+            display: none !important;
+        }
+        body { background: white !important; color: black !important; }
+        .bg-white\/10, .bg-black\/50, .bg-black\/60 {
+            background: white !important;
+            border: 1px solid #ddd !important;
+        }
+        .rec-card-3d, .desc-card, .graph-card, .slideshow-card {
+            background: white !important;
+            border: 1px solid #ccc !important;
+            transform: none !important;
+        }
+        .text-white, .text-green-400, .text-blue-400, .text-red-400, .text-yellow-400 {
+            color: black !important;
+        }
+        .btn-action {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-action:hover { transform: translateY(-2px) scale(1.02); }
+    }
+</style>
+
+</body>
+</html>

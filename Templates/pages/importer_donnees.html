@@ -1,0 +1,156 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importer des données - AgriCam Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0f0a 0%, #1a2a1a 100%);
+        }
+        .glass-card {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold">Importer des données</h1>
+                <p class="text-gray-400 mt-2">Importez vos données agricoles au format Excel ou CSV</p>
+            </div>
+
+            <!-- Formulaire -->
+            <div class="glass-card rounded-2xl p-8 shadow-2xl">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="border-2 border-dashed border-gray-500 rounded-lg p-8 text-center hover:border-green-500 transition cursor-pointer" id="dropzone">
+                        <input type="file" name="fichier" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden" required>
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-gray-300">Cliquez ou glissez-déposez votre fichier ici</p>
+                        <p class="text-sm text-gray-500 mt-2">Formats acceptés : .xlsx, .xls, .csv</p>
+                        <p class="text-sm text-gray-500">Colonnes attendues : culture, superficie, rendement, prix_vente, cout_production, date_recolte</p>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 transform hover:scale-105">
+                            Importer
+                        </button>
+                        <a href="{% url 'analyses' %}" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 text-center">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Messages -->
+                {% if messages %}
+                <div class="mt-6 space-y-2">
+                    {% for message in messages %}
+                    <div class="p-3 rounded-lg {% if message.tags == 'success' %}bg-green-600/50 border border-green-400{% elif message.tags == 'error' %}bg-red-600/50 border border-red-400{% else %}bg-blue-600/50 border border-blue-400{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Template example -->
+            <div class="mt-8 glass-card rounded-xl p-6">
+                <h3 class="font-semibold text-lg mb-3"> Format de fichier attendu</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-600">
+                                <th class="text-left py-2 px-3">culture</th>
+                                <th class="text-left py-2 px-3">superficie</th>
+                                <th class="text-left py-2 px-3">rendement</th>
+                                <th class="text-left py-2 px-3">prix_vente</th>
+                                <th class="text-left py-2 px-3">cout_production</th>
+                                <th class="text-left py-2 px-3">date_recolte</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-700">
+                                <td class="py-2 px-3">Maïs</td>
+                                <td class="py-2 px-3">2.5</td>
+                                <td class="py-2 px-3">2500</td>
+                                <td class="py-2 px-3">500000</td>
+                                <td class="py-2 px-3">300000</td>
+                                <td class="py-2 px-3">2025-03-15</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-3">Riz</td>
+                                <td class="py-2 px-3">1.8</td>
+                                <td class="py-2 px-3">1800</td>
+                                <td class="py-2 px-3">400000</td>
+                                <td class="py-2 px-3">250000</td>
+                                <td class="py-2 px-3">2025-03-20</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Drag and drop functionality
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        
+        dropzone.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-green-500', 'bg-green-500/10');
+        });
+        
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-green-500', 'bg-green-500/10');
+        });
+        
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-green-500', 'bg-green-500/10');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                displayFileName(files[0].name);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                displayFileName(e.target.files[0].name);
+            }
+        });
+        
+        function displayFileName(name) {
+            let fileNameDiv = document.getElementById('fileName');
+            if (!fileNameDiv) {
+                fileNameDiv = document.createElement('p');
+                fileNameDiv.id = 'fileName';
+                fileNameDiv.className = 'text-green-400 text-sm mt-2';
+                dropzone.appendChild(fileNameDiv);
+            }
+            fileNameDiv.textContent = `📎 Fichier sélectionné : ${name}`;
+        }
+    </script>
+</body>
+</html>
